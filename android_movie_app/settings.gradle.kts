@@ -21,4 +21,11 @@ dependencyResolutionManagement {
 
 rootProject.name = "android_movie_app"
 include(":app")
+
+// Include KMP shared library
+includeBuild("../kmp_shared_movie") {
+    dependencySubstitution {
+        substitute(module("com.example.kmplibrary:library")).using(project(":library"))
+    }
+}
  

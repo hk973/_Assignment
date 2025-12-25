@@ -37,18 +37,37 @@ kotlin {
 
     sourceSets {
         commonMain.dependencies {
+            // Ktor
             implementation(libs.ktor.client.core)
             implementation(libs.ktor.client.content.negotiation)
             implementation(libs.ktor.serialization.kotlinx.json)
             implementation(libs.ktor.client.logging)
+            
+            // Koin
+            implementation(libs.koin.core)
+            
+            // Coroutines
+            implementation(libs.kotlinx.coroutines.core)
+            
+            // ViewModel
+            implementation(libs.lifecycle.viewmodel)
         }
 
         commonTest.dependencies {
             implementation(libs.kotlin.test)
+            implementation(libs.kotlinx.coroutines.test)
+            implementation(libs.koin.test)
+            implementation(libs.ktor.client.mock)
+            implementation(libs.kotest.framework.engine)
+            implementation(libs.kotest.assertions.core)
+            implementation(libs.kotest.property)
         }
         
         androidMain.dependencies {
             implementation(libs.ktor.client.android)
+            implementation(libs.koin.android)
+            implementation(libs.kotlinx.coroutines.android)
+            implementation(libs.androidx.paging.common)
         }
         
         iosMain.dependencies {
