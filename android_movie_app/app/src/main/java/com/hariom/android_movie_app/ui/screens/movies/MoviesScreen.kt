@@ -58,7 +58,7 @@ fun MoviesScreen(
             TopAppBar(
                 title = {
                     Text(
-                        text = if (showFavoritesOnly) "Favorites" else "Movies",
+                        text = if (showFavoritesOnly) "Movies" else "Movies",
                         style = MaterialTheme.typography.headlineMedium
                     )
                 },
