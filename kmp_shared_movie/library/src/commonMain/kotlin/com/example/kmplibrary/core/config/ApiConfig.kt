@@ -8,7 +8,7 @@ object ApiConfig {
     const val TMDB_IMAGE_BASE_URL = "https://image.tmdb.org/t/p/"
     const val TMDB_POSTER_SIZE = "w500"
     const val TMDB_BACKDROP_SIZE = "w780"
-    const val TMDB_API_KEY = "90094606fe03827e47b600913394b0bc"
+    const val TMDB_API_KEY = "YOUr_TMDB_API_KEY_HERE" // Replace with your actual TMDB API key
 }
 
 /**
