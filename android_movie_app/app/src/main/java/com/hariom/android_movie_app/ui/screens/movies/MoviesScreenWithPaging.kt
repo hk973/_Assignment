@@ -110,7 +110,7 @@ fun MoviesScreenWithPaging(
                 TopAppBar(
                     title = {
                         Text(
-                            text = if (showFavoritesOnly) "Favorites" else "Movies",
+                            text =  "Movies",
                             style = MaterialTheme.typography.titleLarge,
                             color = TextPrimary
                         )
