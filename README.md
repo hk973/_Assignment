@@ -173,9 +173,9 @@ graph TB
 2. **Configure API Key**
    - Create account at [TMDB](https://www.themoviedb.org/)
    - Get your API key from account settings
-   - Add to `local.properties`:
+   - Add to `kmp_shared_movie/library/src/commonMain/com/example/kmplibrary/core/Config.kt`:
    ```properties
-   tmdb.api.key=your_api_key_here
+   const=val TMDB_API_KEY = "YOUR_TMDB_API_KEY_HERE" // Replace with your actual TMDB API key
    ```
 
 3. **Build the project**
