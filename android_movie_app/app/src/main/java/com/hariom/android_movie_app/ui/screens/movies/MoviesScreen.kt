@@ -3,8 +3,10 @@ package com.hariom.android_movie_app.ui.screens.movies
 import androidx.compose.foundation.layout.*
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Favorite
+import androidx.compose.material.icons.filled.FavoriteBorder
 import androidx.compose.material3.*
 import androidx.compose.runtime.*
+import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.unit.dp
@@ -30,55 +32,73 @@ import org.koin.androidx.compose.koinViewModel
 @Composable
 fun MoviesScreen(
     onMovieClick: (Movie) -> Unit,
-    onFavoritesClick: () -> Unit,
     viewModel: MoviesViewModel = koinViewModel()
 ) {
     val uiState by viewModel.uiState.collectAsStateWithLifecycle()
     val searchQuery by viewModel.searchQuery.collectAsStateWithLifecycle()
-    val isRefreshing by viewModel.isRefreshing.collectAsStateWithLifecycle()
-    
+
+    var showFavoritesOnly by rememberSaveable { mutableStateOf(false) }
+
+    val displayedMovies = remember(
+        uiState.movies,
+        uiState.favorites,
+        showFavoritesOnly
+    ) {
+        if (showFavoritesOnly) {
+            uiState.movies.filter { movie ->
+                uiState.favorites.contains(movie.id)
+            }
+        } else {
+            uiState.movies
+        }
+    }
+
     Scaffold(
         topBar = {
             TopAppBar(
-                title = { 
+                title = {
                     Text(
-                        text = "Movies",
+                        text = if (showFavoritesOnly) "Favorites" else "Movies",
                         style = MaterialTheme.typography.headlineMedium
-                    ) 
+                    )
                 },
                 actions = {
-                    IconButton(onClick = onFavoritesClick) {
+                    IconButton(
+                        onClick = { showFavoritesOnly = !showFavoritesOnly }
+                    ) {
                         Icon(
-                            imageVector = Icons.Default.Favorite,
-                            contentDescription = "Favorites",
-                            tint = MaterialTheme.colorScheme.primary
+                            imageVector = if (showFavoritesOnly)
+                                Icons.Default.Favorite
+                            else
+                                Icons.Default.FavoriteBorder,
+                            contentDescription = "Toggle favorites",
+                            tint = if (showFavoritesOnly)
+                                MaterialTheme.colorScheme.primary
+                            else
+                                MaterialTheme.colorScheme.onSurfaceVariant
                         )
                     }
-                },
-                colors = TopAppBarDefaults.topAppBarColors(
-                    containerColor = MaterialTheme.colorScheme.surface,
-                    titleContentColor = MaterialTheme.colorScheme.onSurface
-                )
+                }
             )
         }
     ) { paddingValues ->
+
         Column(
             modifier = Modifier
                 .fillMaxSize()
                 .padding(paddingValues)
         ) {
-            // Search bar
+
             SearchBar(
                 query = searchQuery,
                 onQueryChange = { viewModel.searchMovies(it) },
                 placeholder = "Search movies..."
             )
-            
-            // Content area with pull-to-refresh
+
             Box(modifier = Modifier.fillMaxSize()) {
+
                 when {
-                    uiState.isLoading && uiState.movies.isEmpty() -> {
-                        // Initial loading state
+                    uiState.isLoading && displayedMovies.isEmpty() -> {
                         Box(
                             modifier = Modifier.fillMaxSize(),
                             contentAlignment = Alignment.Center
@@ -86,49 +106,47 @@ fun MoviesScreen(
                             CircularProgressIndicator()
                         }
                     }
-                    
-                    uiState.error != null && uiState.movies.isEmpty() -> {
-                        // Error state
+
+                    uiState.error != null && displayedMovies.isEmpty() -> {
                         Box(
                             modifier = Modifier.fillMaxSize(),
                             contentAlignment = Alignment.Center
                         ) {
-                            Column(
-                                horizontalAlignment = Alignment.CenterHorizontally,
-                                verticalArrangement = Arrangement.spacedBy(8.dp)
-                            ) {
-                                Text(
-                                    text = uiState.error ?: "Unknown error",
-                                    style = MaterialTheme.typography.bodyLarge,
-                                    color = MaterialTheme.colorScheme.error
-                                )
-                                Button(onClick = { viewModel.loadMovies() }) {
-                                    Text("Retry")
-                                }
-                            }
+                            Text(
+                                text = uiState.error ?: "Unknown error",
+                                color = MaterialTheme.colorScheme.error
+                            )
                         }
                     }
-                    
-                    uiState.movies.isEmpty() && uiState.isSearching -> {
-                        // Empty search results
-                        NoSearchResultsEmptyState()
+
+                    displayedMovies.isEmpty() && showFavoritesOnly -> {
+                        Box(
+                            modifier = Modifier.fillMaxSize(),
+                            contentAlignment = Alignment.Center
+                        ) {
+                            Text(
+                                text = "No favorite movies found.",
+                                style = MaterialTheme.typography.bodyLarge
+                            )
+                        }
                     }
-                    
+
                     else -> {
-                        // Movies grid with pagination
                         MovieGrid(
-                            movies = uiState.movies,
+                            movies = displayedMovies,
                             favorites = uiState.favorites,
                             onMovieClick = onMovieClick,
-                            onFavoriteClick = { movie -> viewModel.toggleFavorite(movie) },
-                            onMovieLongPress = { /* Handle long press if needed */ },
-                            onLoadMore = { 
-                                if (!uiState.isSearching) {
+                            onFavoriteClick = { movie ->
+                                viewModel.toggleFavorite(movie)
+                            },
+                            onMovieLongPress = {},
+                            onLoadMore = {
+                                if (!showFavoritesOnly && !uiState.isSearching) {
                                     viewModel.loadMoreMovies()
                                 }
                             },
-                            isLoadingMore = uiState.isLoading && uiState.movies.isNotEmpty(),
-                            hasMorePages = uiState.hasMorePages,
+                            isLoadingMore = uiState.isLoading && displayedMovies.isNotEmpty(),
+                            hasMorePages = !showFavoritesOnly && uiState.hasMorePages,
                             contentPadding = PaddingValues(
                                 start = 16.dp,
                                 end = 16.dp,
@@ -136,22 +154,6 @@ fun MoviesScreen(
                                 bottom = 16.dp
                             )
                         )
-                    }
-                }
-                
-                // Show error snackbar if there's an error but movies are still displayed
-                if (uiState.error != null && uiState.movies.isNotEmpty()) {
-                    Snackbar(
-                        modifier = Modifier
-                            .align(Alignment.BottomCenter)
-                            .padding(16.dp),
-                        action = {
-                            TextButton(onClick = { viewModel.clearError() }) {
-                                Text("Dismiss")
-                            }
-                        }
-                    ) {
-                        Text(uiState.error ?: "Unknown error")
                     }
                 }
             }

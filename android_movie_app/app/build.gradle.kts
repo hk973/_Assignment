@@ -86,7 +86,8 @@ dependencies {
     // Image Loading
     implementation(libs.coil.compose)
     implementation(libs.coil.network.okhttp)
-    
+    implementation(libs.androidx.compose.runtime.saveable)
+
     // Testing
     testImplementation(libs.junit)
     testImplementation(libs.kotest.framework.engine)

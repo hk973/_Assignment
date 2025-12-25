@@ -56,9 +56,7 @@ fun MovieNavigation(
                 onMovieClick = { movie ->
                     navController.navigate(Screen.MovieDetail.createRoute(movie.id))
                 },
-                onFavoritesClick = {
-                    navController.navigate(Screen.Favorites.route)
-                }
+
             )
         }
         
