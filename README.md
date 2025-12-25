@@ -2,6 +2,9 @@
 
 A modern Android movie discovery application built with **Kotlin Multiplatform Mobile (KMP)** and **Jetpack Compose**. This project demonstrates clean architecture, shared business logic, and advanced UI patterns for browsing and managing movie favorites.
 
+![Untitled video - Made with Clipchamp(1)](https://github.com/user-attachments/assets/ecc0c04f-505d-46b4-a039-a8cd74c4b056)
+
+
 ## 📱 Features
 
 ### Core Functionality
@@ -253,5 +256,6 @@ This project implements a comprehensive testing approach with **Property-Based T
 - **Kotest** community for property-based testing framework
 
 ---
+
 
 **Built with ❤️ using Kotlin Multiplatform and Jetpack Compose**
