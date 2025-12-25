@@ -21,15 +21,17 @@ import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+import androidx.compose.ui.zIndex
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import coil3.compose.AsyncImage
 import coil3.request.ImageRequest
 import coil3.request.crossfade
 import com.example.kmplibrary.presentation.viewmodel.MovieDetailViewModel
+import com.hariom.android_movie_app.ui.theme.IconFavorite
+import com.hariom.android_movie_app.ui.theme.IconFavoriteBorder
 import org.koin.androidx.compose.koinViewModel
 import org.koin.core.parameter.parametersOf
 import androidx.compose.foundation.layout.statusBarsPadding
-import androidx.compose.ui.input.pointer.pointerInput
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
@@ -46,205 +48,188 @@ fun MovieDetailScreenExact(
         viewModel.loadMovieDetail(movieId)
     }
 
-    Box(
+    if (uiState.movieDetail == null) {
+        Box(Modifier.fillMaxSize(), contentAlignment = Alignment.Center) {
+            CircularProgressIndicator(color = Color.White)
+        }
+        return
+    }
+
+    val movie = uiState.movieDetail!!
+
+    Column(
         modifier = Modifier
             .fillMaxSize()
             .background(Color(0xFF0D0B1E))
+            .verticalScroll(scrollState)
     ) {
 
-        when {
-            uiState.isLoading -> {
-                CircularProgressIndicator(
-                    modifier = Modifier.align(Alignment.Center),
-                    color = Color.White
-                )
-            }
+        /* ---------------- HERO SECTION ---------------- */
+        Box(
+            modifier = Modifier
+                .fillMaxWidth()
+                .height(320.dp)
+        ) {
 
-            uiState.error != null -> {
-                Text(
-                    text = uiState.error ?: "Unknown error",
-                    color = MaterialTheme.colorScheme.error,
-                    modifier = Modifier.align(Alignment.Center)
-                )
-            }
+            // Background image
+            AsyncImage(
+                model = ImageRequest.Builder(context)
+                    .data(movie.getBackdropUrl() ?: movie.getPosterUrl())
+                    .crossfade(true)
+                    .build(),
+                contentDescription = null,
+                contentScale = ContentScale.Crop,
+                modifier = Modifier
+                    .fillMaxSize()
+                    .alpha(0.25f)
+            )
 
-            uiState.movieDetail != null -> {
-                val movie = uiState.movieDetail!!
+            /* ---------------- TOP BAR (SCROLLS AWAY) ---------------- */
+            Row(
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .statusBarsPadding()
+                    .padding(16.dp),
+                horizontalArrangement = Arrangement.SpaceBetween,
+                verticalAlignment = Alignment.Top
+            ) {
 
-                /* ---------------- BACKGROUND IMAGE (NON-CLICKABLE) ---------------- */
-                AsyncImage(
-                    model = ImageRequest.Builder(context)
-                        .data(movie.getBackdropUrl() ?: movie.getPosterUrl())
-                        .crossfade(true)
-                        .build(),
-                    contentDescription = null,
-                    contentScale = ContentScale.Crop,
-                    modifier = Modifier
-                        .fillMaxSize()
-                        .alpha(0.25f)
-                        .pointerInput(Unit) {} // IMPORTANT: allow clicks above
-                )
-
-                /* ---------------- TOP BAR ---------------- */
-                Row(
-                    modifier = Modifier
-                        .fillMaxWidth()
-                        .padding(16.dp)
-                        .statusBarsPadding(),
-                    horizontalArrangement = Arrangement.SpaceBetween,
-                    verticalAlignment = Alignment.Top
-                ) {
-
-                    // LEFT: Back + Rating
-                    Column {
-                        IconButton(onClick = onBackClick) {
-                            Icon(
-                                Icons.AutoMirrored.Filled.ArrowBack,
-                                contentDescription = "Back",
-                                tint = Color.White
-                            )
-                        }
-
-                        Spacer(Modifier.height(8.dp))
-
-                        Surface(
-                            shape = RoundedCornerShape(50),
-                            color = Color(0xFF1F1B3A)
-                        ) {
-                            Row(
-                                modifier = Modifier.padding(horizontal = 10.dp, vertical = 4.dp),
-                                verticalAlignment = Alignment.CenterVertically
-                            ) {
-                                Icon(
-                                    Icons.Default.Star,
-                                    contentDescription = null,
-                                    tint = Color(0xFFFFC107),
-                                    modifier = Modifier.size(14.dp)
-                                )
-                                Spacer(Modifier.width(4.dp))
-                                Text(
-                                    String.format("%.1f", movie.voteAverage),
-                                    color = Color.White,
-                                    fontSize = 12.sp
-                                )
-                            }
-                        }
+                // LEFT: Back + Rating
+                Column {
+                    IconButton(onClick = onBackClick) {
+                        Icon(
+                            Icons.AutoMirrored.Filled.ArrowBack,
+                            contentDescription = "Back",
+                            tint = Color.White
+                        )
                     }
 
-                    // RIGHT: Favorite
-                    IconButton(
-                        onClick = { viewModel.toggleFavorite() },
-                        enabled = !uiState.isTogglingFavorite
+                    Spacer(Modifier.height(6.dp))
+
+                    Surface(
+                        shape = RoundedCornerShape(50),
+                        color = Color(0xFF1F1B3A)
                     ) {
-                        Icon(
-                            imageVector = if (uiState.isFavorite)
-                                Icons.Default.Favorite else Icons.Default.FavoriteBorder,
-                            contentDescription = "Favorite",
-                            tint = if (uiState.isFavorite) Color.Red else Color.White
-                        )
+                        Row(
+                            modifier = Modifier.padding(horizontal = 10.dp, vertical = 4.dp),
+                            verticalAlignment = Alignment.CenterVertically
+                        ) {
+                            Icon(
+                                Icons.Default.Star,
+                                contentDescription = null,
+                                tint = Color(0xFFFFC107),
+                                modifier = Modifier.size(14.dp)
+                            )
+                            Spacer(Modifier.width(4.dp))
+                            Text(
+                                String.format("%.1f", movie.voteAverage),
+                                color = Color.White,
+                                fontSize = 12.sp,
+                                fontWeight = FontWeight.Bold
+                            )
+                        }
                     }
                 }
 
-                /* ---------------- SCROLL CONTENT ---------------- */
-                Column(
-                    modifier = Modifier
-                        .fillMaxSize()
-                        .verticalScroll(scrollState)
-                        .padding(top = 280.dp, bottom = 32.dp)
+                // RIGHT: Favorite
+                IconButton(
+                    onClick = { viewModel.toggleFavorite() },
+                    enabled = !uiState.isTogglingFavorite
                 ) {
+                    Icon(
+                        imageVector = if (uiState.isFavorite)
+                            Icons.Default.Favorite
+                        else
+                            Icons.Default.FavoriteBorder,
+                        contentDescription = "Favorite",
+                        tint = if (uiState.isFavorite)
+                            IconFavorite
+                        else
+                            IconFavoriteBorder
+                    )
+                }
+            }
+        }
 
-                    /* ---------------- FLOATING MOVIE CARD ---------------- */
-                    Surface(
-                        modifier = Modifier
-                            .fillMaxWidth()
-                            .padding(horizontal = 16.dp),
-                        shape = RoundedCornerShape(24.dp),
-                        color = Color(0xFF1A1638),
-                        shadowElevation = 12.dp
-                    ) {
-                        Column(Modifier.padding(20.dp)) {
+        /* ---------------- FLOATING CARD ---------------- */
+        Surface(
+            modifier = Modifier
+                .fillMaxWidth()
+                .padding(horizontal = 16.dp)
+                .offset(y = (-40).dp),
+            shape = RoundedCornerShape(24.dp),
+            color = Color(0xFF1A1638),
+            shadowElevation = 12.dp
+        ) {
+            Column(Modifier.padding(20.dp)) {
 
-                            Text(
-                                movie.title,
-                                fontSize = 22.sp,
-                                fontWeight = FontWeight.Bold,
-                                color = Color.White
-                            )
+                Text(
+                    movie.title,
+                    fontSize = 22.sp,
+                    fontWeight = FontWeight.Bold,
+                    color = Color.White
+                )
 
-                            Spacer(Modifier.height(8.dp))
+                Spacer(Modifier.height(8.dp))
 
-                            Row(verticalAlignment = Alignment.CenterVertically) {
-
-                                movie.getReleaseYear()?.let {
-                                    Text(it, color = Color.Gray, fontSize = 13.sp)
-                                }
-
-                                Spacer(Modifier.width(8.dp))
-                                Text("•", color = Color.Gray)
-                                Spacer(Modifier.width(8.dp))
-
-                                movie.getFormattedRuntime()?.let {
-                                    Text(it, color = Color.Gray, fontSize = 13.sp)
-                                }
-                            }
-
-                            Spacer(Modifier.height(12.dp))
-
-                            // GENRE CHIPS
-                            GenreChips(
-                                genres = movie.genres.map { it.name }
-                            )
-
-                            Spacer(Modifier.height(16.dp))
-
-                            /* ---------------- PLAY BUTTON (NO ACTION) ---------------- */
-                            Box(
-                                modifier = Modifier
-                                    .fillMaxWidth()
-                                    .height(52.dp)
-                                    .clip(RoundedCornerShape(30.dp))
-                                    .background(
-                                        Brush.horizontalGradient(
-                                            listOf(
-                                                Color(0xFF9C27FF),
-                                                Color(0xFFFF2E93)
-                                            )
-                                        )
-                                    ),
-                                contentAlignment = Alignment.Center
-                            ) {
-                                Row(verticalAlignment = Alignment.CenterVertically) {
-                                    Icon(Icons.Default.PlayArrow, null, tint = Color.White)
-                                    Spacer(Modifier.width(8.dp))
-                                    Text(
-                                        "Play Now",
-                                        color = Color.White,
-                                        fontWeight = FontWeight.Bold
-                                    )
-                                }
-                            }
-                        }
+                Row {
+                    movie.getReleaseYear()?.let {
+                        Text(it, color = Color.Gray, fontSize = 13.sp)
                     }
-
-                    Spacer(Modifier.height(32.dp))
-
-                    SectionCard("Synopsis", movie.overview)
-
-                    movie.director?.let {
-                        SectionCard("Director", it)
+                    Spacer(Modifier.width(8.dp))
+                    Text("•", color = Color.Gray)
+                    Spacer(Modifier.width(8.dp))
+                    movie.getFormattedRuntime()?.let {
+                        Text(it, color = Color.Gray, fontSize = 13.sp)
                     }
+                }
 
-                    if (movie.cast.isNotEmpty()) {
-                        SectionCard(
-                            "Cast",
-                            movie.getMainCast().joinToString(", ") { it.name }
-                        )
+                Spacer(Modifier.height(12.dp))
+
+                GenreChips(movie.genres.map { it.name })
+
+                Spacer(Modifier.height(16.dp))
+
+                // Play button (no action)
+                Box(
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .height(52.dp)
+                        .clip(RoundedCornerShape(30.dp))
+                        .background(
+                            Brush.horizontalGradient(
+                                listOf(
+                                    Color(0xFF9C27FF),
+                                    Color(0xFFFF2E93)
+                                )
+                            )
+                        ),
+                    contentAlignment = Alignment.Center
+                ) {
+                    Row(verticalAlignment = Alignment.CenterVertically) {
+                        Icon(Icons.Default.PlayArrow, null, tint = Color.White)
+                        Spacer(Modifier.width(8.dp))
+                        Text("Play Now", color = Color.White, fontWeight = FontWeight.Bold)
                     }
                 }
             }
         }
+
+        Spacer(Modifier.height(8.dp))
+
+        SectionCard("Synopsis", movie.overview)
+        movie.director?.let { SectionCard("Director", it) }
+        if (movie.cast.isNotEmpty()) {
+            SectionCard(
+                "Cast",
+                movie.getMainCast().joinToString(", ") { it.name }
+            )
+        }
+
+        Spacer(Modifier.height(32.dp))
     }
 }
+
 
 /* ---------------- GENRE CHIPS ---------------- */
 
