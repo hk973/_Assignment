@@ -8,7 +8,7 @@ import androidx.navigation.compose.NavHost
 import androidx.navigation.compose.composable
 import androidx.navigation.compose.rememberNavController
 import com.hariom.android_movie_app.ui.screens.favorites.FavoritesScreen
-import com.hariom.android_movie_app.ui.screens.moviedetail.MovieDetailScreen
+import com.hariom.android_movie_app.ui.screens.moviedetail.MovieDetailScreenExact
 import com.hariom.android_movie_app.ui.screens.movies.MoviesScreenWithPaging
 
 /**
@@ -84,7 +84,7 @@ fun MovieNavigation(
             }
         ) { backStackEntry ->
             val movieId = backStackEntry.arguments?.getInt("movieId") ?: 0
-            MovieDetailScreen(
+            MovieDetailScreenExact(
                 movieId = movieId,
                 onBackClick = {
                     navController.popBackStack()
