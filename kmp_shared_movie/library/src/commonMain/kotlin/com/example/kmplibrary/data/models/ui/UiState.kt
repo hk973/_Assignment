@@ -34,28 +34,3 @@ sealed class UiState<out T> {
     fun getErrorOrNull(): String? = if (this is Error) message else null
 }
 
-/**
- * Extension function to map success data
- */
-inline fun <T, R> UiState<T>.map(transform: (T) -> R): UiState<R> {
-    return when (this) {
-        is UiState.Loading -> UiState.Loading
-        is UiState.Success -> UiState.Success(transform(data))
-        is UiState.Error -> this
-    }
-}
-
-/**
- * Extension function to handle different states
- */
-inline fun <T> UiState<T>.fold(
-    onLoading: () -> Unit = {},
-    onSuccess: (T) -> Unit = {},
-    onError: (String, Throwable?) -> Unit = { _, _ -> }
-) {
-    when (this) {
-        is UiState.Loading -> onLoading()
-        is UiState.Success -> onSuccess(data)
-        is UiState.Error -> onError(message, throwable)
-    }
-}
