@@ -5,52 +5,40 @@ plugins {
     alias(libs.plugins.kotlinMultiplatform)
     alias(libs.plugins.android.kotlin.multiplatform.library)
     alias(libs.plugins.kotlinx.serialization)
+    id("com.vanniktech.maven.publish")
 }
 
-group = "com.example.kmplibrary"
-version = "1.0.0"
+group = property("GROUP") as String
+version = property("VERSION_NAME") as String
 
 kotlin {
     androidLibrary {
-        namespace = "com.example.kmplibrary"
+        namespace = "io.github.hariomkankatti.kmplibrary"
         compileSdk = libs.versions.android.compileSdk.get().toInt()
         minSdk = libs.versions.android.minSdk.get().toInt()
 
-        withJava() // enable java compilation support
-        withHostTestBuilder {}.configure {}
-        withDeviceTestBuilder {
-            sourceSetTreeName = "test"
-        }
+        withJava()
 
         compilations.configureEach {
             compilerOptions.configure {
-                jvmTarget.set(
-                    JvmTarget.JVM_11
-                )
+                jvmTarget.set(JvmTarget.JVM_11)
             }
         }
     }
-    
+
     iosX64()
     iosArm64()
     iosSimulatorArm64()
 
     sourceSets {
         commonMain.dependencies {
-            // Ktor
             implementation(libs.ktor.client.core)
             implementation(libs.ktor.client.content.negotiation)
             implementation(libs.ktor.serialization.kotlinx.json)
             implementation(libs.ktor.client.logging)
-            
-            // Koin
+
             implementation(libs.koin.core)
-            
-            // Coroutines
             implementation(libs.kotlinx.coroutines.core)
-            
-            // ViewModel
-            implementation(libs.lifecycle.viewmodel)
         }
 
         commonTest.dependencies {
@@ -58,18 +46,16 @@ kotlin {
             implementation(libs.kotlinx.coroutines.test)
             implementation(libs.koin.test)
             implementation(libs.ktor.client.mock)
-            implementation(libs.kotest.framework.engine)
-            implementation(libs.kotest.assertions.core)
-            implementation(libs.kotest.property)
         }
-        
+
         androidMain.dependencies {
             implementation(libs.ktor.client.android)
             implementation(libs.koin.android)
             implementation(libs.kotlinx.coroutines.android)
             implementation(libs.androidx.paging.common)
+            implementation(libs.lifecycle.viewmodel)
         }
-        
+
         iosMain.dependencies {
             implementation(libs.ktor.client.darwin)
         }

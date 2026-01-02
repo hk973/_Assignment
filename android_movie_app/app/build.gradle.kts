@@ -67,7 +67,7 @@ android {
 
 dependencies {
     // KMP Shared Library
-    implementation("com.example.kmplibrary:library")
+    implementation("io.github.hariomkankatti.kmplibrary:library")
 
     // Core Android
     implementation(libs.androidx.core.ktx)
